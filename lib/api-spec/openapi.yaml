@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: detection
+    description: Deepfake detection operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /detect:
+    post:
+      operationId: detectDeepfake
+      tags: [detection]
+      summary: Analyze an image for deepfake indicators
+      description: Accepts a base64-encoded image and returns a deepfake verdict, confidence, region heatmap, and a multimodal explanation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectRequest"
+      responses:
+        "200":
+          description: Detection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectError"
+        "500":
+          description: Detection failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectError"
+  /detect/history:
+    get:
+      operationId: listDetections
+      tags: [detection]
+      summary: Recent detections
+      description: Returns a feed of the most recent detections for the activity timeline.
+      responses:
+        "200":
+          description: Recent detections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DetectionRecord"
+  /detect/stats:
+    get:
+      operationId: getDetectionStats
+      tags: [detection]
+      summary: Aggregate detection stats
+      description: Returns counts and averages used to power the dashboard summary cards.
+      responses:
+        "200":
+          description: Aggregate stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionStats"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +94,175 @@ components:
           type: string
       required:
         - status
-
+    DetectRequest:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+          description: Image encoded as a data URL (e.g. data:image/png;base64,...) or raw base64.
+        source:
+          type: string
+          enum: [upload, webcam]
+          description: Where the image came from.
+      required:
+        - imageBase64
+        - source
+    Region:
+      type: object
+      description: Suspicious region as fractional bounding box (0-1) over the image.
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+        intensity:
+          type: number
+          description: Heat intensity from 0 (low) to 1 (high).
+        label:
+          type: string
+          description: Short label for the region (e.g. "eyes", "mouth blending").
+      required:
+        - x
+        - y
+        - width
+        - height
+        - intensity
+        - label
+    DetectResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          enum: [REAL, FAKE, UNCERTAIN]
+        confidence:
+          type: number
+          description: Confidence in the verdict (0-1).
+        explanation:
+          type: string
+          description: Multimodal natural language explanation.
+        regions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Region"
+        signals:
+          type: array
+          description: Short bullet-style signals that contributed to the verdict.
+          items:
+            type: string
+        inferenceMs:
+          type: integer
+          description: Inference time in milliseconds.
+        device:
+          type: string
+          description: Compute device used (e.g. "GPU (ROCm)", "CPU", "Cloud GPU").
+        gpuUtilization:
+          type: number
+          description: Approximate device utilization (0-1) for the inference.
+        cpuBaselineMs:
+          type: integer
+          description: Estimated CPU-only baseline latency for comparison.
+        modelName:
+          type: string
+        source:
+          type: string
+          enum: [upload, webcam]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - label
+        - confidence
+        - explanation
+        - regions
+        - signals
+        - inferenceMs
+        - device
+        - gpuUtilization
+        - cpuBaselineMs
+        - modelName
+        - source
+        - createdAt
+    DetectionRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          enum: [REAL, FAKE, UNCERTAIN]
+        confidence:
+          type: number
+        source:
+          type: string
+          enum: [upload, webcam]
+        inferenceMs:
+          type: integer
+        device:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        thumbnail:
+          type: string
+          description: Small base64 thumbnail of the analyzed image.
+        summary:
+          type: string
+          description: One-sentence summary of the verdict.
+      required:
+        - id
+        - label
+        - confidence
+        - source
+        - inferenceMs
+        - device
+        - createdAt
+        - summary
+    DetectionStats:
+      type: object
+      properties:
+        totalScans:
+          type: integer
+        fakeCount:
+          type: integer
+        realCount:
+          type: integer
+        uncertainCount:
+          type: integer
+        averageConfidence:
+          type: number
+        averageInferenceMs:
+          type: integer
+        averageCpuBaselineMs:
+          type: integer
+        speedupFactor:
+          type: number
+          description: averageCpuBaselineMs / averageInferenceMs.
+        device:
+          type: string
+        modelName:
+          type: string
+      required:
+        - totalScans
+        - fakeCount
+        - realCount
+        - uncertainCount
+        - averageConfidence
+        - averageInferenceMs
+        - averageCpuBaselineMs
+        - speedupFactor
+        - device
+        - modelName
+    DetectError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

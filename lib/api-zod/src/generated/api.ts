@@ -14,3 +14,102 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Accepts a base64-encoded image and returns a deepfake verdict, confidence, region heatmap, and a multimodal explanation.
+ * @summary Analyze an image for deepfake indicators
+ */
+export const DetectDeepfakeBody = zod.object({
+  imageBase64: zod
+    .string()
+    .describe(
+      "Image encoded as a data URL (e.g. data:image\/png;base64,...) or raw base64.",
+    ),
+  source: zod.enum(["upload", "webcam"]).describe("Where the image came from."),
+});
+
+export const DetectDeepfakeResponse = zod.object({
+  id: zod.string(),
+  label: zod.enum(["REAL", "FAKE", "UNCERTAIN"]),
+  confidence: zod.number().describe("Confidence in the verdict (0-1)."),
+  explanation: zod
+    .string()
+    .describe("Multimodal natural language explanation."),
+  regions: zod.array(
+    zod
+      .object({
+        x: zod.number(),
+        y: zod.number(),
+        width: zod.number(),
+        height: zod.number(),
+        intensity: zod
+          .number()
+          .describe("Heat intensity from 0 (low) to 1 (high)."),
+        label: zod
+          .string()
+          .describe(
+            'Short label for the region (e.g. \"eyes\", \"mouth blending\").',
+          ),
+      })
+      .describe(
+        "Suspicious region as fractional bounding box (0-1) over the image.",
+      ),
+  ),
+  signals: zod
+    .array(zod.string())
+    .describe("Short bullet-style signals that contributed to the verdict."),
+  inferenceMs: zod.number().describe("Inference time in milliseconds."),
+  device: zod
+    .string()
+    .describe(
+      'Compute device used (e.g. \"GPU (ROCm)\", \"CPU\", \"Cloud GPU\").',
+    ),
+  gpuUtilization: zod
+    .number()
+    .describe("Approximate device utilization (0-1) for the inference."),
+  cpuBaselineMs: zod
+    .number()
+    .describe("Estimated CPU-only baseline latency for comparison."),
+  modelName: zod.string(),
+  source: zod.enum(["upload", "webcam"]),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * Returns a feed of the most recent detections for the activity timeline.
+ * @summary Recent detections
+ */
+export const ListDetectionsResponseItem = zod.object({
+  id: zod.string(),
+  label: zod.enum(["REAL", "FAKE", "UNCERTAIN"]),
+  confidence: zod.number(),
+  source: zod.enum(["upload", "webcam"]),
+  inferenceMs: zod.number(),
+  device: zod.string(),
+  createdAt: zod.coerce.date(),
+  thumbnail: zod
+    .string()
+    .optional()
+    .describe("Small base64 thumbnail of the analyzed image."),
+  summary: zod.string().describe("One-sentence summary of the verdict."),
+});
+export const ListDetectionsResponse = zod.array(ListDetectionsResponseItem);
+
+/**
+ * Returns counts and averages used to power the dashboard summary cards.
+ * @summary Aggregate detection stats
+ */
+export const GetDetectionStatsResponse = zod.object({
+  totalScans: zod.number(),
+  fakeCount: zod.number(),
+  realCount: zod.number(),
+  uncertainCount: zod.number(),
+  averageConfidence: zod.number(),
+  averageInferenceMs: zod.number(),
+  averageCpuBaselineMs: zod.number(),
+  speedupFactor: zod
+    .number()
+    .describe("averageCpuBaselineMs \/ averageInferenceMs."),
+  device: zod.string(),
+  modelName: zod.string(),
+});

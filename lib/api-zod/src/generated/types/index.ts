@@ -6,4 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./detectError";
+export * from "./detectionRecord";
+export * from "./detectionRecordLabel";
+export * from "./detectionRecordSource";
+export * from "./detectionStats";
+export * from "./detectRequest";
+export * from "./detectRequestSource";
+export * from "./detectResponse";
+export * from "./detectResponseLabel";
+export * from "./detectResponseSource";
 export * from "./healthStatus";
+export * from "./region";

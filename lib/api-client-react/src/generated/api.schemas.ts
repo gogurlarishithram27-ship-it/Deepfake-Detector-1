@@ -8,3 +8,124 @@
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * Where the image came from.
+ */
+export type DetectRequestSource =
+  (typeof DetectRequestSource)[keyof typeof DetectRequestSource];
+
+export const DetectRequestSource = {
+  upload: "upload",
+  webcam: "webcam",
+} as const;
+
+export interface DetectRequest {
+  /** Image encoded as a data URL (e.g. data:image/png;base64,...) or raw base64. */
+  imageBase64: string;
+  /** Where the image came from. */
+  source: DetectRequestSource;
+}
+
+/**
+ * Suspicious region as fractional bounding box (0-1) over the image.
+ */
+export interface Region {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Heat intensity from 0 (low) to 1 (high). */
+  intensity: number;
+  /** Short label for the region (e.g. "eyes", "mouth blending"). */
+  label: string;
+}
+
+export type DetectResponseLabel =
+  (typeof DetectResponseLabel)[keyof typeof DetectResponseLabel];
+
+export const DetectResponseLabel = {
+  REAL: "REAL",
+  FAKE: "FAKE",
+  UNCERTAIN: "UNCERTAIN",
+} as const;
+
+export type DetectResponseSource =
+  (typeof DetectResponseSource)[keyof typeof DetectResponseSource];
+
+export const DetectResponseSource = {
+  upload: "upload",
+  webcam: "webcam",
+} as const;
+
+export interface DetectResponse {
+  id: string;
+  label: DetectResponseLabel;
+  /** Confidence in the verdict (0-1). */
+  confidence: number;
+  /** Multimodal natural language explanation. */
+  explanation: string;
+  regions: Region[];
+  /** Short bullet-style signals that contributed to the verdict. */
+  signals: string[];
+  /** Inference time in milliseconds. */
+  inferenceMs: number;
+  /** Compute device used (e.g. "GPU (ROCm)", "CPU", "Cloud GPU"). */
+  device: string;
+  /** Approximate device utilization (0-1) for the inference. */
+  gpuUtilization: number;
+  /** Estimated CPU-only baseline latency for comparison. */
+  cpuBaselineMs: number;
+  modelName: string;
+  source: DetectResponseSource;
+  createdAt: string;
+}
+
+export type DetectionRecordLabel =
+  (typeof DetectionRecordLabel)[keyof typeof DetectionRecordLabel];
+
+export const DetectionRecordLabel = {
+  REAL: "REAL",
+  FAKE: "FAKE",
+  UNCERTAIN: "UNCERTAIN",
+} as const;
+
+export type DetectionRecordSource =
+  (typeof DetectionRecordSource)[keyof typeof DetectionRecordSource];
+
+export const DetectionRecordSource = {
+  upload: "upload",
+  webcam: "webcam",
+} as const;
+
+export interface DetectionRecord {
+  id: string;
+  label: DetectionRecordLabel;
+  confidence: number;
+  source: DetectionRecordSource;
+  inferenceMs: number;
+  device: string;
+  createdAt: string;
+  /** Small base64 thumbnail of the analyzed image. */
+  thumbnail?: string;
+  /** One-sentence summary of the verdict. */
+  summary: string;
+}
+
+export interface DetectionStats {
+  totalScans: number;
+  fakeCount: number;
+  realCount: number;
+  uncertainCount: number;
+  averageConfidence: number;
+  averageInferenceMs: number;
+  averageCpuBaselineMs: number;
+  /** averageCpuBaselineMs / averageInferenceMs. */
+  speedupFactor: number;
+  device: string;
+  modelName: string;
+}
+
+export interface DetectError {
+  error: string;
+}

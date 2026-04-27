@@ -5,18 +5,28 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  DetectError,
+  DetectRequest,
+  DetectResponse,
+  DetectionRecord,
+  DetectionStats,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +102,245 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Accepts a base64-encoded image and returns a deepfake verdict, confidence, region heatmap, and a multimodal explanation.
+ * @summary Analyze an image for deepfake indicators
+ */
+export const getDetectDeepfakeUrl = () => {
+  return `/api/detect`;
+};
+
+export const detectDeepfake = async (
+  detectRequest: DetectRequest,
+  options?: RequestInit,
+): Promise<DetectResponse> => {
+  return customFetch<DetectResponse>(getDetectDeepfakeUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(detectRequest),
+  });
+};
+
+export const getDetectDeepfakeMutationOptions = <
+  TError = ErrorType<DetectError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof detectDeepfake>>,
+    TError,
+    { data: BodyType<DetectRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof detectDeepfake>>,
+  TError,
+  { data: BodyType<DetectRequest> },
+  TContext
+> => {
+  const mutationKey = ["detectDeepfake"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof detectDeepfake>>,
+    { data: BodyType<DetectRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return detectDeepfake(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DetectDeepfakeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof detectDeepfake>>
+>;
+export type DetectDeepfakeMutationBody = BodyType<DetectRequest>;
+export type DetectDeepfakeMutationError = ErrorType<DetectError>;
+
+/**
+ * @summary Analyze an image for deepfake indicators
+ */
+export const useDetectDeepfake = <
+  TError = ErrorType<DetectError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof detectDeepfake>>,
+    TError,
+    { data: BodyType<DetectRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof detectDeepfake>>,
+  TError,
+  { data: BodyType<DetectRequest> },
+  TContext
+> => {
+  return useMutation(getDetectDeepfakeMutationOptions(options));
+};
+
+/**
+ * Returns a feed of the most recent detections for the activity timeline.
+ * @summary Recent detections
+ */
+export const getListDetectionsUrl = () => {
+  return `/api/detect/history`;
+};
+
+export const listDetections = async (
+  options?: RequestInit,
+): Promise<DetectionRecord[]> => {
+  return customFetch<DetectionRecord[]>(getListDetectionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDetectionsQueryKey = () => {
+  return [`/api/detect/history`] as const;
+};
+
+export const getListDetectionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDetections>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDetections>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDetectionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDetections>>> = ({
+    signal,
+  }) => listDetections({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDetections>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDetectionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDetections>>
+>;
+export type ListDetectionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Recent detections
+ */
+
+export function useListDetections<
+  TData = Awaited<ReturnType<typeof listDetections>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDetections>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDetectionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns counts and averages used to power the dashboard summary cards.
+ * @summary Aggregate detection stats
+ */
+export const getGetDetectionStatsUrl = () => {
+  return `/api/detect/stats`;
+};
+
+export const getDetectionStats = async (
+  options?: RequestInit,
+): Promise<DetectionStats> => {
+  return customFetch<DetectionStats>(getGetDetectionStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDetectionStatsQueryKey = () => {
+  return [`/api/detect/stats`] as const;
+};
+
+export const getGetDetectionStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDetectionStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDetectionStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDetectionStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getDetectionStats>>
+  > = ({ signal }) => getDetectionStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDetectionStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDetectionStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDetectionStats>>
+>;
+export type GetDetectionStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Aggregate detection stats
+ */
+
+export function useGetDetectionStats<
+  TData = Awaited<ReturnType<typeof getDetectionStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDetectionStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDetectionStatsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

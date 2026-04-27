@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Deepfake Detector PRO — a multimodal AI web app for detecting synthetic / manipulated images. Users can upload an image or capture from a webcam, then receive a verdict (REAL / FAKE / UNCERTAIN), confidence score, region heatmap overlaid on the image, a natural-language explanation, contributing forensic signals, and performance telemetry.
 
 ## Stack
 
@@ -10,18 +10,32 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
+- **Frontend**: React + Vite + Tailwind v4 + wouter + TanStack Query + framer-motion
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
+- **Validation**: Zod (`zod/v4`)
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Vision AI**: Anthropic Claude (via Replit AI Integrations — multimodal vision)
+
+## Artifacts
+
+- `artifacts/deepfake-detector` — React + Vite frontend at `/`
+- `artifacts/api-server` — Express API at `/api`
+- `artifacts/mockup-sandbox` — design canvas at `/__mockup`
+
+## API surface (`/api`)
+
+- `GET /healthz` — health check
+- `POST /detect` — run deepfake analysis on a base64 image; returns label, confidence, regions, signals, explanation, and performance metrics.
+- `GET /detect/history` — recent detections (in-memory, last 12 of 50)
+- `GET /detect/stats` — aggregate dashboard stats (totals, averages, GPU vs CPU speedup)
 
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Notes
+
+- Detection state is in-memory (no database). Restart clears history.
+- The `device` and `modelName` strings reported to the UI are configured in `artifacts/api-server/src/lib/store.ts`.
+- The system prompt that constrains the Claude vision response to the JSON schema lives in `artifacts/api-server/src/routes/detect.ts`.

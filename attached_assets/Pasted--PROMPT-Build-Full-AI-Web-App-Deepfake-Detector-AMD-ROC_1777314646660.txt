@@ -1,0 +1,182 @@
+# 💻 PROMPT: Build Full AI Web App (Deepfake Detector – AMD + ROCm + Hugging Face)
+
+Build a complete, working web application for the following project:
+
+---
+
+## 🔹 Project Title
+
+Deepfake Detector PRO – Multimodal AI Web App (AMD GPU + ROCm + Hugging Face)
+
+---
+
+## 🔹 Goal
+
+Create a full-stack AI web application that allows users to upload an image or use a webcam to detect deepfakes, visualize manipulated regions, and generate explanations using multimodal AI. The application must run using AMD GPU acceleration (ROCm) and integrate Hugging Face models.
+
+---
+
+## 🔹 Mandatory Technologies (STRICT REQUIREMENT)
+
+### ✅ AMD Developer Cloud
+
+* The application must be designed to run on AMD Developer Cloud GPU instances
+* Backend should support cloud deployment and GPU usage
+* Mention where training and inference happen on cloud
+
+### ✅ ROCm (AMD GPU Platform)
+
+* Use PyTorch with ROCm backend
+* Detect device using:
+  device = "cuda" if torch.cuda.is_available() else "cpu"
+* Ensure all model inference runs on GPU if available
+
+### ✅ Hugging Face
+
+* Use transformers library
+* Load pretrained multimodal model (BLIP or LLaVA)
+* Generate explanation from image
+
+---
+
+## 🔹 Features to Implement
+
+### 1. Image Upload
+
+* Upload JPG/PNG images
+* Display image preview
+
+### 2. Deepfake Detection Model
+
+* Use EfficientNet or CNN
+* Output:
+
+  * Label: Real / Fake
+  * Confidence score
+
+### 3. Grad-CAM Heatmap
+
+* Highlight manipulated regions
+* Overlay heatmap on image
+
+### 4. Multimodal Explanation
+
+* Use Hugging Face model
+* Output explanation text
+
+### 5. Webcam Detection
+
+* Real-time webcam capture
+* Display predictions on live feed
+
+### 6. Performance Metrics
+
+* Show inference time
+* Show GPU usage (ROCm)
+
+---
+
+## 🔹 Tech Stack
+
+### Backend:
+
+* Python (FastAPI preferred)
+* PyTorch (ROCm compatible)
+* OpenCV
+* Hugging Face Transformers
+
+### Frontend:
+
+* Simple UI (Streamlit OR React)
+* Clean dashboard layout
+
+---
+
+## 🔹 API Endpoints
+
+POST /predict
+→ Input: image
+→ Output:
+
+* label
+* confidence
+* heatmap
+* explanation
+
+---
+
+## 🔹 Folder Structure
+
+backend/
+├── main.py
+├── model.py
+├── gradcam.py
+├── explain.py
+
+frontend/ (if React used)
+
+requirements.txt
+
+---
+
+## 🔹 UI Layout
+
+* Upload section
+* Webcam section
+* Prediction result
+* Heatmap visualization
+* Explanation text
+* Performance stats
+
+---
+
+## 🔹 Output Example
+
+Prediction: FAKE
+Confidence: 92%
+
+Explanation:
+"The face region shows inconsistent lighting and blending."
+
+---
+
+## 🔹 Extra Features (IMPORTANT)
+
+* Add loading spinner
+* Add confidence progress bar
+* Add GPU vs CPU comparison
+* Add download result option
+
+---
+
+## 🔹 Constraints
+
+* Must use AMD-compatible setup (ROCm PyTorch)
+* Must integrate Hugging Face models
+* Must include Grad-CAM
+* Code should be modular and production-ready
+
+---
+
+## 🔹 Output Required
+
+Generate:
+
+1. Full backend code
+2. Frontend code (or Streamlit app)
+3. requirements.txt
+4. Setup instructions
+5. Run commands
+
+---
+
+## 🔹 Final Goal
+
+A complete AI-powered web app demonstrating:
+
+* Multimodal AI (image + text explanation)
+* Explainable AI (heatmaps)
+* GPU acceleration using AMD ROCm
+* Cloud-ready deployment (AMD Developer Cloud)
+
+---

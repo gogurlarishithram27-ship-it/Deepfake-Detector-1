@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Deepfake Detector PRO"
+version = "1.0.0"
+id = "artifacts/deepfake-detector"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19666
+
+[services.development]
+run = "pnpm --filter @workspace/deepfake-detector run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/deepfake-detector", "run", "build" ]
+publicDir = "artifacts/deepfake-detector/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19666"
+BASE_PATH = "/"
