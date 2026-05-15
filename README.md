@@ -1,6 +1,6 @@
 # Deepfake Detector PRO
 
-A multimodal AI-powered web application for detecting synthetic and manipulated images. Built for the AMD Developer Hackathon.
+A multimodal AI-powered web application for detecting synthetic and manipulated images. Built for the AMD Developer.
 
 ## Features
 
@@ -75,9 +75,9 @@ pnpm --filter @workspace/api-spec run codegen
 - The `device` and `modelName` strings shown in the UI (AMD Instinct MI300X, etc.) are configured in `artifacts/api-server/src/lib/store.ts` and can be swapped for a real ROCm worker on AMD Developer Cloud.
 - The AI backend uses Claude's vision capabilities to analyze images and return structured forensic output.
 
-## Built By
+## Designed and Developed by G. Rishithram
 
-G. Rishithram
+
 
 ## License
 
